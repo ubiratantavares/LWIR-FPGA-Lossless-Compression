@@ -1,0 +1,112 @@
+\documentclass[12pt,a4paper]{article}
+
+% Pacotes básicos
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{amsmath}
+
+% Configuração de margens
+\geometry{margin=2.5cm}
+
+% Título e Autor
+\title{\textbf{Relatório de Execução da Sprint 0}\\ \large Validação da Simulação e Configuração do Ambiente de Hardware}
+\author{Invent Vision - Projeto LWIR FPGA Lossless Compression}
+\date{07 de Janeiro de 2026}
+
+\begin{document}
+
+\maketitle
+
+\section{Introdução}
+O objetivo da \textbf{Sprint 0} foi definir o modelo preditivo final para o hardware, validar as premissas de compressão utilizando dados reais e preparar o ambiente de desenvolvimento para a implementação em FPGA. Este relatório documenta os resultados obtidos nas etapas de "Validação Final da Simulação (SW)", "Configuração do Ambiente Quartus II" e "Modelagem HLS/HDL Inicial".
+
+\section{Validação da Simulação (Passo 1)}
+
+\subsection{Metodologia}
+Foi desenvolvido um ambiente de simulação em Python (\texttt{main.py}) que implementa o pipeline de compressão completo. O fluxo de dados consiste em:
+\begin{enumerate}
+    \item Leitura de imagens TIFF de 16 bits (Dataset FLIR).
+    \item Aplicação de algoritmos de predição (DPCM Fixo e Adaptativo).
+    \item Cálculo da Entropia de Shannon dos resíduos.
+    \item Estimativa da Taxa de Compressão (CR) utilizando codificação \textit{Deflate} como proxy para o LZW.
+\end{enumerate}
+
+\subsection{Resultados da Simulação}
+
+Foram avaliados dois candidatos a preditor:
+\begin{itemize}
+    \item \textbf{DPCM Fixo (Left Neighbor):} Predição simples baseada no pixel anterior ($P_{i,j} = P_{i,j-1}$).
+    \item \textbf{Adaptativo (MED):} Preditor baseado em detecção de bordas (Median Edge Detection), utilizando vizinhança causal (Esquerda, Cima, Cima-Esquerda).
+\end{itemize}
+
+A Tabela \ref{tab:resultados} resume as métricas médias obtidas após o processamento de 500 frames.
+
+\begin{table}[H]
+    \centering
+    \caption{Comparativo de Desempenho dos Preditores (Média de 500 Frames)}
+    \label{tab:resultados}
+    \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Métrica} & \textbf{DPCM Fixo} & \textbf{Adaptativo (MED)} & \textbf{Diferença} \\ \midrule
+        Entropia Média (bits/pixel) & 5.1260 & 4.9004 & -0.2256 \\
+        CR Estimado (Deflate) & \textbf{2.43:1} & \textbf{2.51:1} & +3.4\% \\ \bottomrule
+    \end{tabular}
+\end{table}
+
+\subsection{Decisão Técnica}
+Com base nos dados, optou-se pelo uso do \textbf{DPCM Fixo (Left Neighbor)}. Embora o preditor Adaptativo tenha apresentado um CR 3.4\% superior, o DPCM Fixo atende plenamente ao requisito de projeto (CR entre 1.5:1 e 2.5:1) com complexidade de hardware significativamente menor (sem necessidade de \textit{Line Buffers}), liberando recursos de memória (BRAMs) para o estágio de dicionário LZW.
+
+\section{Configuração do Ambiente de Hardware (Passo 2)}
+
+Para viabilizar a implementação física do projeto, foi estabelecido o ambiente de desenvolvimento baseado na ferramenta Quartus II.
+
+\subsection{Definição da Plataforma}
+\begin{itemize}
+    \item \textbf{FPGA Alvo:} Cyclone IV E
+    \item \textbf{Dispositivo:} EP4CE115F29C7 (Comumente encontrado no kit DE2-115)
+    \item \textbf{Toolchain:} Quartus II 13.1 Web Edition
+\end{itemize}
+
+\subsection{Estrutura do Projeto}
+A organização dos arquivos foi padronizada para facilitar o controle de versão e a manutenção:
+\begin{itemize}
+    \item \texttt{hw/quartus/}: Arquivos de projeto (.qpf) e configurações (.qsf).
+    \item \texttt{hw/hdl/}: Código fonte Verilog.
+    \item \texttt{hw/constraints/}: Restrições de tempo e pinagem (.sdc).
+\end{itemize}
+
+\subsection{Restrições de Timing}
+Foi criado o arquivo de restrições \texttt{timing.sdc} definindo o clock principal do sistema:
+\begin{verbatim}
+create_clock -name clk -period 10.000 [get_ports {clk}]
+\end{verbatim}
+Isso estabelece uma meta de frequência de operação de \textbf{100 MHz}, alinhada com os requisitos de \textit{throughput} do sistema.
+
+\section{Modelagem HDL Inicial (Passo 3)}
+
+Foi iniciada a tradução dos algoritmos validados em software para a linguagem de descrição de hardware (Verilog 2005).
+
+\subsection{Estratégia de Mapeamento}
+\begin{itemize}
+    \item \textbf{Preditor DPCM:} Implementado utilizando lógica aritmética simples (subtratores) mapeada em Logic Elements (LEs).
+    \item \textbf{Dicionário LZW (Futuro):} Planejado para utilizar blocos de memória M9K em configuração Dual-Port RAM para permitir leitura e escrita simultâneas.
+\end{itemize}
+
+\subsection{Implementação do Preditor}
+O módulo \texttt{DPCM\_Predictor.v} foi codificado implementando a lógica "Left Neighbor".
+\begin{itemize}
+    \item \textbf{Entrada:} 16 bits (unsigned).
+    \item \textbf{Saída:} 17 bits (signed) para acomodar o intervalo dinâmico do resíduo sem overflow.
+    \item \textbf{Pipeline:} Estrutura síncrona com registro de entrada e saída para facilitar o fechamento de timing.
+\end{itemize}
+
+\section{Conclusão}
+A Sprint 0 cumpriu seus objetivos principais. O algoritmo preditor foi validado experimentalmente, o ambiente de hardware foi configurado e o primeiro módulo HDL foi codificado. O projeto está pronto para avançar para a \textbf{Sprint 1}, que focará na implementação completa do Baseline DPCM-RLE e sua validação em hardware.
+
+\end{document}

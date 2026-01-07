@@ -1,0 +1,97 @@
+% ---------------------------------------------------------
+% Definições de acrônimos
+% ---------------------------------------------------------
+
+\newacronym{FPGA}{FPGA}{Field Programmable Gate Array}
+\newacronym{LWIR}{LWIR}{Long-Wave Infrared}
+\newacronym{RAM}{RAM}{Random Access Memory}
+\newacronym{BRAM}{BRAM}{Block Random Access Memory}
+\newacronym{DTR}{DTR}{Documento Técnico de Referência}
+\newacronym{JPEG}{JPEG}{Joint Photographic Experts Group}
+\newacronym{VHDL}{VHDL}{VHSIC Hardware Description Language}
+\newacronym{RTL}{RTL}{Register Transfer Level}
+\newacronym{CRC}{CRC}{Cyclic Redundancy Check}
+\newacronym{TIR}{TIR}{\textit{Thermal Infrared}}
+\newacronym{AXI4-Stream}{AXI4-Stream}{\textit{Advanced eXtensible Interface 4 Stream}}
+\newacronym{LZW}{LZW}{\textit{Lempel–Ziv–Welch}}
+\newacronym{DPCM}{DPCM}{\textit{Differential Pulse Code Modulation}}
+\newacronym{RLE}{RLE}{\textit{Run-Length Encoding}}
+\newacronym{FF}{FF}{\textit{Flip-Flop}}
+\newacronym{FIFO}{FIFO}{\textit{First-In, First-Out}}
+\newacronym{ABNT}{ABNT}{Associação Brasileira de Normas Técnicas}
+\newacronym{ANS}{ANS}{Asymmetric Numeral Systems}
+\newacronym{CR}{CR}{Compression Ratio}
+\newacronym{HLS}{HLS}{High-Level Synthesis}
+\newacronym{DSP}{DSP}{Digital Signal Processor}
+\newacronym{ILA}{ILA}{Integrated Logic Analyzer}
+\newacronym{FMAX}{FMAX}{Maximum Operating Frequency}
+\newacronym{SoC}{SoC}{System-on-a-Chip}
+\newacronym{GPU}{GPU}{Graphics Processing Unit}
+\newacronym{DRS}{DRS}{Documento de Requisitos de Sistema}
+\newacronym{HDL}{HDL}{Hardware Description Language}
+\newacronym{VHSIC}{VHSIC}{Very High Speed Integrated Circuit}
+\newacronym{CPU}{CPU}{Central Processing Unit}
+\newacronym{LUT}{LUT}{Look-Up Table}
+
+% ---------------------------------------------------------
+% Definições de termos técnicos
+% ---------------------------------------------------------
+\newglossaryentry{compressao}{
+    name={compressão},
+    description={Processo de redução do volume de dados mantendo a integridade da informação}
+}
+
+\newglossaryentry{imagemtermica}{
+    name={imagem térmica},
+    description={Imagem obtida com base na radiação infravermelha emitida por corpos}
+}
+
+\newglossaryentry{lossless}{
+    name={sem perdas (lossless)},
+    description={Tipo de compressão que permite reconstrução exata dos dados originais}
+}
+
+\newglossaryentry{RAW}{
+    name={RAW},
+    description={Formato de imagem bruta, sem compressão ou processamento}
+}
+
+\newglossaryentry{II}{
+    name={II},
+    description={\textit{Initiation Interval} — intervalo de iniciação em pipelines, representando o número de ciclos de clock entre o início de duas iterações consecutivas. Um valor de II=1 indica paralelismo máximo}
+}
+
+\newglossaryentry{ChipScope}{
+    name={ChipScope},
+    description={Conjunto de ferramentas de depuração \textit{on-chip} da Xilinx que permite a visualização de sinais internos do FPGA em tempo real, essencial para validação de hardware.}
+}
+
+\newglossaryentry{Zynq7020}{
+    name={Zynq7020},
+    description={Modelo de System-on-Chip (SoC) da Xilinx que integra um processador ARM e lógica de FPGA programável, frequentemente usado como alvo para sistemas embarcados de processamento de imagem.}
+}
+
+\newglossaryentry{Vivado}{
+    name={Vivado},
+    description={Suíte de software de desenvolvimento da Xilinx, utilizada para síntese, implementação e verificação de designs de hardware para FPGAs e SoCs da empresa.}
+}
+
+\newglossaryentry{DSP48}{
+    name={DSP48},
+    description={Bloco de hardware dedicado encontrado em FPGAs da Xilinx, otimizado para realizar operações aritméticas rápidas como multiplicação e acumulação, essencial para processamento de sinais digitais e algoritmos de compressão como DPCM.}
+}
+
+\newglossaryentry{Huffman}{
+    name={Huffman},
+    description={Algoritmo de codificação de entropia sem perdas que utiliza um conjunto de códigos de comprimento variável. Baseia-se na frequência de ocorrência dos símbolos, atribuindo códigos curtos a símbolos mais frequentes e códigos longos a símbolos menos frequentes.}
+}
+
+\newglossaryentry{Verilog}{
+    name={Verilog},
+    description={Uma das linguagens de descrição de hardware (HDL) mais utilizadas, padronizada pela IEEE. É usada para modelar, simular e sintetizar circuitos eletrônicos digitais para implementação em FPGAs e ASICs.}
+}
+
+\newglossaryentry{PynqZ2}{
+    name={PynqZ2},
+    description={Placa de desenvolvimento baseada no \gls{SoC} Xilinx \gls{Zynq7020}, utilizada em aplicações de aprendizado de máquina e processamento de imagem.}
+}

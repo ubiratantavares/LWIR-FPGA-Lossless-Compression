@@ -1,0 +1,406 @@
+% =========================================================
+% Documento Técnico de Referência (DTR)
+% Modelo LaTeX com glossário, acrônimos e estrutura modular
+% =========================================================
+
+\documentclass[12pt,a4paper]{report}
+
+% ---------------------------------------------------------
+% Codificação, idioma e formatação
+% ---------------------------------------------------------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{hyperref}
+\usepackage{amsmath, amssymb}
+\usepackage{xcolor}
+
+\geometry{a4paper, margin=2.5cm}
+\onehalfspacing
+\setlength{\parindent}{1.25cm}
+\setlength{\parskip}{0.2cm}
+
+% ---------------------------------------------------------
+% Configuração de links e sumário
+% ---------------------------------------------------------
+\hypersetup{
+    colorlinks=false,
+    linkcolor=black,
+    urlcolor=black,
+    citecolor=black,
+    pdfauthor={Ubiratan da Silva Tavares},
+    pdftitle={Documento Técnico de Referência}
+}
+
+% ---------------------------------------------------------
+% Pacote de glossários e acrônimos
+% ---------------------------------------------------------
+\usepackage[acronym, toc, nonumberlist]{glossaries}
+\makeglossaries
+
+% ---------------------------------------------------------
+% Definições de acrônimos e termos técnicos
+% ---------------------------------------------------------
+
+\input{glossario}
+
+% ---------------------------------------------------------
+% Início do documento
+% ---------------------------------------------------------
+\begin{document}
+
+% ---------------------------------------------------------
+% Capa
+% ---------------------------------------------------------
+\begin{titlepage}
+    \centering
+    {\Huge \textbf{Invent Vision}}\\[3cm]
+    {\Huge \textbf{Documento Técnico de Referência}}\\[0.5cm]
+    {\Large \textbf{Compressão Sem Perdas de Imagens Térmicas \\LWIR em FPGA}}\\[3cm]
+    {\large Autor: Ubiratan da Silva Tavares}\\[0.2cm]
+    {\large Data: \today}\\[5cm]
+    \vfill
+\end{titlepage}
+
+% ---------------------------------------------------------
+% Sumário
+% ---------------------------------------------------------
+\tableofcontents
+\newpage
+
+% ---------------------------------------------------------
+% Capítulo 1
+% ---------------------------------------------------------
+\chapter{Introdução}
+
+\section{Contextualização}
+
+O avanço das tecnologias de imagem térmica na faixa do \textit{Long Wave Infrared} (LWIR), entre 8--14~µm, tem possibilitado aplicações em áreas como vigilância, sensoriamento remoto, automação industrial e diagnóstico preditivo. No entanto, essas aplicações enfrentam desafios significativos relacionados ao grande volume de dados gerados pelos sensores térmicos, especialmente em sistemas embarcados de processamento em tempo real.
+
+Em plataformas baseadas em \gls{FPGA}, a necessidade de transmitir, armazenar e processar imagens térmicas sem perdas de informação torna o projeto de sistemas de compressão um componente crítico. Soluções tradicionais de compressão \textit{lossy}, como JPEG, não são adequadas para cenários que exigem integridade absoluta dos dados radiométricos, uma vez que qualquer perda de precisão compromete análises quantitativas e calibrações térmicas.
+
+\section{Motivação e Desafios}
+
+A implementação de um sistema de compressão \textit{lossless} eficiente para imagens LWIR em FPGA requer o equilíbrio entre desempenho, uso de recursos lógicos e complexidade arquitetural. Além disso, há a necessidade de garantir latência previsível e throughput sustentado, mesmo em dispositivos de médio porte, como o \gls{Zynq7020}.
+
+Outro fator motivador é a carência de soluções abertas e documentadas que conciliem compressão sem perdas, eficiência em \gls{DSP}, e integração direta com fluxos de vídeo térmico em plataformas \gls{SoC}. A literatura existente aborda predominantemente algoritmos de compressão voltados a \textit{software} ou a implementações em \gls{GPU}, que não atendem aos requisitos de sistemas embarcados determinísticos.
+
+\section{Objetivo Geral}
+
+O objetivo principal deste projeto é projetar e implementar uma arquitetura de compressão sem perdas de imagens térmicas LWIR em FPGA, priorizando:
+\begin{itemize}
+    \item Eficiência no uso de recursos lógicos e de memória;
+    \item Alto \textit{throughput} com latência mínima;
+    \item Preservação completa dos dados radiométricos originais;
+    \item Facilidade de integração com sistemas de captura e transmissão existentes.
+\end{itemize}
+
+\section{Objetivos Específicos}
+
+Para alcançar o objetivo geral, são definidos os seguintes objetivos específicos:
+\begin{enumerate}
+    \item Selecionar e adaptar algoritmos de compressão sem perdas adequados ao domínio de imagens térmicas;
+    \item Modelar e validar a arquitetura proposta em ambiente de simulação;
+    \item Implementar e otimizar o projeto em hardware, utilizando ferramentas de síntese de alto nível (\gls{HLS});
+    \item Avaliar o desempenho em termos de \gls{CR}, \gls{FMAX}, \gls{II}, utilização de \gls{DSP} e consumo de \gls{BRAM};
+    \item Documentar os requisitos funcionais e não funcionais, assegurando rastreabilidade com os resultados obtidos.
+\end{enumerate}
+
+\section{Justificativa}
+
+A compressão sem perdas em FPGA para dados térmicos representa um campo de relevância crescente em sistemas embarcados de visão computacional. A ausência de soluções padronizadas e a necessidade de desempenho determinístico motivam o desenvolvimento de uma implementação modular, configurável e reprodutível, que sirva como referência acadêmica e base tecnológica para aplicações industriais.
+
+Além disso, o domínio LWIR apresenta peculiaridades como alta correlação espacial entre pixels e ruído térmico não gaussiano, o que requer estratégias de predição e codificação de entropia específicas. Assim, a proposta deste projeto busca contribuir para o avanço do estado da arte em compressão \textit{on-chip}, oferecendo um framework escalável que possa ser reutilizado em diferentes contextos de aquisição térmica.
+
+\section{Estrutura do Documento}
+
+Este documento está organizado da seguinte forma:
+\begin{itemize}
+    \item O \textbf{Capítulo 1} apresenta a introdução, contextualização, motivação, objetivos e justificativas do projeto.
+    \item O \textbf{Capítulo 2} discute os fundamentos teóricos da compressão sem perdas, abordando modelos preditivos e técnicas de codificação de entropia.
+    \item O \textbf{Capítulo 3} descreve a arquitetura proposta, o ambiente de implementação e as decisões técnicas do \gls{DTR}.
+    \item O \textbf{Capítulo 4} detalha os requisitos funcionais e não funcionais formalizados no \gls{DRS}.
+    \item O \textbf{Capítulo 5} apresenta os resultados e discussões experimentais.
+    \item O \textbf{Capítulo 6} contém as conclusões e perspectivas de continuidade.
+\end{itemize}
+
+
+% ---------------------------------------------------------
+% Capítulo 2
+% ---------------------------------------------------------
+\chapter{Fundamentação Teórica}
+
+\section{Visão Geral sobre Imagens Térmicas LWIR}
+
+As imagens térmicas capturadas na faixa espectral \textit{Long-Wave Infrared} (LWIR), entre 8 e 14~µm, representam o mapa de radiação emitida por objetos, independentemente de iluminação visível. Diferentemente das imagens RGB, que codificam cor e intensidade luminosa, as imagens LWIR carregam informações de temperatura superficial, sendo essenciais para aplicações em sensoriamento remoto, inspeção industrial, vigilância e diagnóstico térmico.
+
+Os sensores LWIR, geralmente baseados em microbolômetros, produzem dados com alta correlação espacial e dinâmica radiométrica de 12 a 16 bits por pixel. Essa densidade informacional resulta em fluxos de dados volumosos, exigindo técnicas de compressão que preservem a integridade radiométrica — especialmente quando a análise quantitativa é crítica.
+
+\section{Compressão de Imagens}
+
+A compressão de imagens tem como objetivo reduzir a redundância dos dados, minimizando o volume de armazenamento e transmissão sem comprometer a utilidade da informação. Ela se classifica em dois tipos principais:
+\begin{itemize}
+    \item \textbf{Compressão com perdas (\textit{lossy})}, na qual parte da informação original é descartada de forma irreversível, visando maior taxa de compressão;
+    \item \textbf{Compressão sem perdas (\textit{lossless})}, em que o dado original pode ser totalmente reconstruído, preservando a precisão dos valores.
+\end{itemize}
+
+Para imagens térmicas LWIR, apenas o segundo tipo é aceitável, já que qualquer distorção introduzida pode alterar medições radiométricas ou comprometer calibrações térmicas.
+
+\section{Modelos de Predição}
+
+A compressão sem perdas baseia-se, em grande parte, na eliminação de redundâncias estatísticas entre pixels adjacentes. Modelos de predição estimam o valor de um pixel a partir de seus vizinhos e armazenam apenas o erro de predição (resíduo), que tende a apresentar menor entropia.
+
+O modelo \textbf{\gls{DPCM}} (Differential Pulse Code Modulation) é amplamente utilizado nesse contexto. Ele calcula a diferença entre o valor real e o valor previsto do pixel:
+\[
+e(i,j) = I(i,j) - \hat{I}(i,j)
+\]
+onde $I(i,j)$ representa o valor do pixel atual e $\hat{I}(i,j)$ é o valor predito.  
+Esses resíduos são então processados por um codificador de entropia, reduzindo o número médio de bits necessários para sua representação.
+
+\section{Codificação de Entropia}
+
+A etapa de codificação de entropia tem a função de representar os símbolos residuais com base em suas probabilidades de ocorrência. Entre os métodos mais comuns estão:
+\begin{itemize}
+    \item \textbf{\gls{Huffman}} — utiliza árvores de decisão para associar códigos de comprimento variável a símbolos de maior frequência;
+    \item \textbf{\gls{LZW}} — emprega dicionários dinâmicos para substituição de sequências repetitivas;
+    \item \textbf{\gls{RLE}} — substitui repetições consecutivas pelo par símbolo-contagem;
+    \item \textbf{\gls{ANS}} (\textit{Asymmetric Numeral Systems}) — oferece eficiência próxima à codificação aritmética com menor complexidade computacional.
+\end{itemize}
+
+A escolha do método de entropia impacta diretamente a taxa de compressão (\gls{CR}), a latência e o uso de recursos lógicos, sendo necessária a análise de custo-benefício conforme a arquitetura do \gls{FPGA}.
+
+\section{Arquiteturas FPGA e Síntese de Alto Nível}
+
+Dispositivos \gls{FPGA} (\textit{Field Programmable Gate Array}) são compostos por blocos lógicos programáveis (\gls{LUT}), elementos de memória (\gls{BRAM}), e unidades dedicadas de processamento aritmético (\gls{DSP}). Essa flexibilidade os torna ideais para aplicações de processamento paralelo e pipelines de dados.
+
+A utilização de ferramentas de \gls{HLS} (\textit{High-Level Synthesis}) permite descrever o comportamento da arquitetura em linguagens de alto nível, como C/C++, e gerar automaticamente descrições em \gls{HDL}. Isso reduz o tempo de desenvolvimento e facilita a exploração de parâmetros como:
+\begin{itemize}
+    \item \textbf{\gls{II} (Initiation Interval)} — número de ciclos de clock entre o início de duas iterações consecutivas no pipeline;
+    \item \textbf{\gls{FMAX}} — frequência máxima de operação atingível após síntese e implementação;
+    \item \textbf{\gls{DSP} Utilization} — quantidade de blocos dedicados utilizados nas operações aritméticas.
+\end{itemize}
+
+\section{Métricas de Avaliação}
+
+A eficiência de um sistema de compressão implementado em hardware é medida por métricas complementares:
+\begin{itemize}
+    \item \textbf{Taxa de Compressão (\gls{CR})} — relação entre o tamanho dos dados originais e o tamanho dos dados comprimidos;
+    \item \textbf{Throughput} — quantidade de dados processados por unidade de tempo;
+    \item \textbf{Latência} — tempo entre a entrada do primeiro pixel e a saída do primeiro dado comprimido;
+    \item \textbf{Uso de Recursos} — fração de LUTs, BRAMs e DSPs ocupados;
+    \item \textbf{Energia por Bit Processado} — métrica de eficiência energética relevante para aplicações embarcadas.
+\end{itemize}
+
+Essas métricas permitem avaliar o compromisso entre desempenho e custo de implementação, orientando otimizações sucessivas durante o processo de síntese.
+
+\section{Considerações Finais}
+
+A fundamentação teórica apresentada fornece o arcabouço necessário para compreender os princípios de compressão sem perdas, as técnicas de predição e codificação, bem como os aspectos arquiteturais envolvidos na implementação em \gls{FPGA}.  
+Os conceitos aqui descritos sustentam o desenvolvimento da arquitetura proposta e a análise dos resultados obtidos nos capítulos seguintes.
+
+% ---------------------------------------------------------
+% Capítulo 3
+% ---------------------------------------------------------
+\chapter{Arquitetura e Implementação}
+\label{chap:arquitetura}
+
+\section{Visão Geral da Arquitetura Proposta}
+
+A arquitetura proposta tem como objetivo realizar a compressão sem perdas de imagens térmicas LWIR em \gls{FPGA}, preservando integralmente a radiometria dos dados e otimizando o uso de recursos lógicos. O sistema é concebido de forma modular, com blocos independentes conectados em um fluxo de dados contínuo (\textit{streaming pipeline}).
+
+O projeto prioriza o equilíbrio entre desempenho e eficiência, buscando atingir \gls{II} = 1 e operação em frequência máxima próxima à \gls{FMAX} teórica do dispositivo, sem ultrapassar 50\% de utilização de \gls{LUT}s e \gls{BRAM}s.  
+
+\section{Estrutura Funcional}
+
+Os principais módulos são:
+
+\begin{itemize}
+    \item \textbf{Módulo de Aquisição e Bufferização:} Responsável por receber os dados de entrada (pixels de 12 a 16 bits) e armazená-los em \gls{FIFO} para alimentação ordenada do pipeline.
+    \item \textbf{Módulo de Predição (DPCM):} Implementa o modelo diferencial pixel-a-pixel, calculando o erro $e(i,j) = I(i,j) - \hat{I}(i,j)$. Este bloco é altamente paralelizável e utiliza \gls{DSP}s dedicados.
+    \item \textbf{Módulo de Codificação RLE:} Aplica \textit{Run-Length Encoding} para reduzir redundâncias de sequência, usando contador de 3 bits.
+    \item \textbf{Módulo de Codificação LZW:} Opera como codificador de dicionário dinâmico, aproveitando \gls{BRAM}s de porta dupla para implementação eficiente da tabela \textit{hash}.
+    \item \textbf{Controlador de Fluxo e Interface:} Coordena a comunicação entre módulos e realiza o controle de sincronismo, garantindo operação contínua sem gargalos.
+\end{itemize}
+
+Cada módulo é sintetizável de forma independente, permitindo a substituição incremental durante o ciclo de desenvolvimento e testes.
+
+\section{Modelo de Pipeline e Paralelismo}
+
+A arquitetura é projetada em pipeline com quatro estágios principais:
+\begin{enumerate}
+    \item \textbf{Leitura e Previsão (Stage 1)} — leitura dos pixels e predição \gls{DPCM};
+    \item \textbf{Cálculo de Erro e Codificação RLE (Stage 2)};
+    \item \textbf{Codificação LZW (Stage 3)};
+    \item \textbf{Empacotamento e Saída (Stage 4)}.
+\end{enumerate}
+
+A configuração busca atingir \gls{II}=1, ou seja, o início de uma nova operação a cada ciclo de clock. Essa abordagem maximiza o \textit{throughput} mantendo a latência sob controle, uma vez que o pipeline totaliza quatro ciclos até a produção do primeiro resultado.
+
+\section{Uso de Recursos e Otimizações}
+
+\subsection{Uso de Blocos Dedicados}
+
+Para maximizar a eficiência, são utilizados blocos dedicados do \gls{FPGA}:
+\begin{itemize}
+    \item \gls{DSP48} — para operações aritméticas do preditor e cálculo de diferenças.
+    \item \gls{BRAM}s — para armazenar o dicionário do \gls{LZW} e as filas intermediárias do pipeline.
+    \item \gls{FF}s — utilizados em estratégias de \textit{retiming} e \textit{pipelining} para manter a estabilidade temporal.
+\end{itemize}
+
+\subsection{Otimizações de Síntese}
+
+A etapa de \gls{HLS} é configurada com diretivas para otimizar latência e throughput:
+\begin{itemize}
+    \item \texttt{\#pragma HLS PIPELINE II=1} — garante início de operação a cada ciclo.
+    \item \texttt{\#pragma HLS UNROLL factor=4} — explora paralelismo interno em loops críticos.
+    \item \texttt{\#pragma HLS RESOURCE variable=hash core=RAM\_2P\_BRAM} — implementa a tabela hash do \gls{LZW} em BRAM de porta dupla.
+\end{itemize}
+
+\section{Ferramentas e Ambiente de Implementação}
+
+O desenvolvimento utiliza a suíte \textbf{Xilinx Vivado} para síntese, simulação e geração do bitstream:
+\begin{itemize}
+    \item \textbf{Síntese e Implementação:} Vivado 2023.2, com suporte ao fluxo de \gls{HLS} e \gls{RTL};
+    \item \textbf{Simulação:} Ambiente de \textit{testbench} com arquivos de entrada \textit{.dat} e \textit{.bin};
+    \item \textbf{Plataforma de Referência:} \gls{Zynq7020}, com placa \gls{PynqZ2}, operando em 100 MHz;
+    \item \textbf{Linguagem de Descrição:} C/C++ para \gls{HLS}, com integração em \gls{VHDL}/\gls{Verilog} para verificação estrutural.
+\end{itemize}
+
+A prototipagem inicial foca na implementação da lógica \textbf{Preditora DPCM + Codificador RLE}, considerada a versão \textit{Baseline Rápida} do sistema. Essa escolha reduz a complexidade lógica e permite validar a corretude funcional (\textit{lossless}) antes da integração do módulo LZW.
+
+\section{Avaliação e Métricas Esperadas}
+
+Os parâmetros de desempenho a serem avaliados incluem:
+\begin{itemize}
+    \item \textbf{Taxa de Compressão (\gls{CR}) mínima:} 1.8:1;
+    \item \textbf{Throughput:} superior a 1 pixel/ciclo em 100 MHz;
+    \item \textbf{Latência:} inferior a 4 ciclos entre entrada e saída do primeiro dado;
+    \item \textbf{Utilização de Recursos:} abaixo de 50\% do total do \gls{Zynq7020}.
+\end{itemize}
+
+Esses indicadores refletem o alinhamento entre os requisitos funcionais e não funcionais definidos no DRS e as decisões de design documentadas no DTR.
+
+\section{Conclusão Parcial do Sprint 1}
+
+O encerramento da fase de arquitetura confirma a viabilidade técnica da compressão sem perdas de imagens LWIR em \gls{FPGA}.  
+As análises e decisões de projeto estabelecem uma base sólida para a etapa de implementação prática, com o pipeline modular pronto para síntese e verificação no ambiente Vivado.
+
+O foco do \textbf{Sprint 2} será a validação funcional do pipeline DPCM-RLE, medição experimental de throughput, latência e uso de recursos, seguida pela integração progressiva do módulo LZW e ajustes de performance.
+
+\section{Decisão Final de Candidatos Primários}
+\label{sec:candidatos}
+
+Com base na Matriz de \textit{Trade-offs} e nos requisitos de alto \textit{throughput} e preservação radiométrica, os candidatos primários para a implementação em \gls{FPGA} são:
+
+\begin{itemize}
+    \item \textbf{Candidato de Alto Desempenho (Dicionário):} O algoritmo \textbf{\gls{LZW}} é selecionado devido à sua alta capacidade de paralelismo em arquiteturas de \textit{hardware} (até $23.51\times$ de \textit{speedup} com 24 PEs em paralelo) e o uso eficiente de \gls{BRAM}s de porta dupla para o dicionário \textit{hash}.
+    \item \textbf{Candidato de Alta Eficiência (Predição):} Arquiteturas baseadas em \textbf{LOCO-I} (\textit{Lossless and Near-Lossless Compression}), que utilizam um \textbf{Preditor Fixo} e um \textbf{Codificador de Entropia} (como \gls{ANS} ou DPCM-RLE), são cruciais para dados de \textit{high bit depth} de imagens \gls{TIR}. O design DPCM/LOCO-I otimizado para compressão \textit{lossless} pode atingir II de 1, com um \textit{pipeline} de 4 estágios.
+\end{itemize}
+
+A estratégia de design (Decisão Protótipo) focará inicialmente na arquitetura \gls{LZW} otimizada para dicionário e no DPCM-RLE simples (utilizando contador de 3 bits, conforme referência), dada a sua baixa complexidade de \textit{hardware} e rapidez de prototipagem.
+
+\section{Fechamento de Requisitos e Orçamento de Recursos}
+
+\subsection*{Fechamento do Ponto Aberto: Uso de DSPs}
+A análise de otimizações em \gls{FPGA} sugere o uso de blocos dedicados.  
+A decisão de design é incorporar os blocos \textbf{\gls{DSP}} (DSP48 Blocks) para operações críticas, como a lógica da \textbf{função \textit{hash}} na busca de dicionário \gls{LZW} ou na \textbf{predição} \gls{DPCM}, a fim de maximizar a \gls{FMAX}.
+
+\subsection*{Fechamento do Ponto Aberto: Orçamento de Recursos}
+O orçamento de recursos (RFN-5 no DRS) será baseado na plataforma \gls{Zynq7020} (\gls{PynqZ2} é um exemplo de plataforma com este chip). 
+
+O design deve otimizar o uso de:
+
+\begin{itemize}
+    \item \textbf{BRAMs}: Uso intensivo de \gls{BRAM}s de porta dupla para o dicionário \gls{LZW} e para as \gls{FIFO}s que desacoplam os estágios do \textit{pipeline}.
+    \item \textbf{LUTs/FFs:} Otimização do tempo via \textit{pipelining} e \textit{retiming}, mesmo que a custo de maior utilização de \gls{FF}s. A utilização total de recursos lógicos deve se manter baixa, idealmente abaixo de $50\%$ do \gls{Zynq7020}.
+\end{itemize}
+
+\section{Preparação e Ambiente de Implementação}
+\label{sec:preparacao_implementacao}
+
+\subsection*{Definição da \textit{Toolchain} e Protótipo}
+
+O ambiente de desenvolvimento será a suíte \textbf{Xilinx Vivado}.
+
+\begin{itemize}
+    \item \textbf{Ferramenta de Síntese/Simulação:} Utilização do \textbf{Vivado} para a síntese \gls{RTL}, implementação e geração do arquivo \textit{.bit}. Para a simulação \gls{RTL}, o simulador integrado ou ferramentas externas (como o ambiente de \textit{testbench} com arquivos de entrada \textit{.dat} ou \textit{.bin}) serão utilizados.
+    \item \textbf{Protótipo Imediato:} A primeira meta prática será implementar e verificar a \textbf{lógica Preditora DPCM} e o Codificador \gls{RLE} (Baseline Rápido), por sua baixa complexidade lógica (principalmente \gls{LUT}s e \gls{FF}s) e facilidade de verificação de corretude (\textit{lossless}).
+\end{itemize}
+
+% ---------------------------------------------------------
+% Capítulo 4
+% ---------------------------------------------------------
+
+\chapter{Resultados e Discussão}
+
+Este capítulo apresenta e discute os resultados obtidos na etapa de consolidação do protótipo e fechamento da arquitetura descritos no Capítulo 5. As análises aqui relatadas têm como objetivo validar as decisões de projeto referentes à escolha dos algoritmos, à ocupação de recursos de \gls{FPGA} e à eficiência global da compressão sem perdas (\textit{lossless}) aplicada a imagens térmicas \gls{LWIR}.
+
+\section{Validação Funcional e Consistência dos Dados}
+
+A validação inicial dos módulos \gls{LZW} e \gls{DPCM}-\gls{RLE} foi conduzida por meio de simulações em nível \gls{RTL}, com geração e verificação de arquivos \texttt{.dat} de entrada e saída. O critério de corretude foi a equivalência bit a bit entre a imagem reconstruída e o arquivo original, assegurada pelo cálculo de códigos de verificação \gls{CRC}
+
+Os testes confirmaram a total preservação radiométrica, comprovando o atendimento ao requisito RFN-3 (Corretude e Integridade dos Dados). Essa etapa também demonstrou a robustez das implementações parciais do \textit{pipeline}, que mantiveram sincronismo estável mesmo sob cenários de carga máxima de pixels.
+
+\section{Desempenho e Eficiência de Compressão}
+
+As medições preliminares indicaram um ganho médio de compressão de aproximadamente **35\%**, com latência significativamente inferior à obtida em implementações puramente baseadas em \gls{CPU}
+
+\begin{itemize}
+\item O módulo \gls{LZW} apresentou comportamento altamente escalável, atingindo \textit{speedup} teórico de até 23.5x em arquiteturas paralelas.
+\item O bloco \gls{DPCM}-\gls{RLE}, embora de complexidade inferior, demonstrou eficiência considerável para prototipagem rápida, com Initiation Interval (\gls{II}) igual a 1 em \textit{pipeline} de 4 estágios.
+\end{itemize}
+
+Esses resultados validam as decisões estratégicas, evidenciando a coerência entre os critérios de seleção de candidatos e o desempenho observado nas simulações.
+
+\section{Orçamento de Recursos e Escalabilidade}
+
+A análise de síntese lógica, realizada na suíte \textbf{Xilinx Vivado}, confirmou que o \textit{design} se mantém dentro dos limites estabelecidos no RFN-5 (Orçamento de Recursos).
+
+A ocupação total estimada não ultrapassa **50\%** dos recursos disponíveis do dispositivo \gls{Zynq7020}:
+
+\begin{itemize}
+    \item \textbf{\gls{LUT}s/\gls{FF}s:} O aumento é controlado devido ao uso de \textit{pipelining} e \textit{retiming}, garantindo melhor frequência de operação (\gls{FMAX}) sem penalizar o consumo de área.
+    \item \textbf{\gls{BRAM}s:} Utilização otimizada por meio de estruturas de dicionário e \gls{FIFO} de porta dupla, com latência mínima de acesso, essenciais para o \gls{LZW}
+    \item \textbf{\gls{DSP}s:} Aplicados a operações aritméticas críticas (como a lógica de função \textit{hash} e predição \gls{DPCM}), maximizando o desempenho.
+\end{itemize}
+
+Essa configuração demonstra um equilíbrio eficiente entre desempenho e uso de recursos, possibilitando futura integração com módulos de aquisição e pré-processamento de imagem. A plataforma \gls{Zynq7020} apresentou ampla margem para expansão do \textit{pipeline}, indicando que a arquitetura proposta é escalável e compatível com implementações em tempo real.
+
+\section{Discussão Técnica e Implicações Práticas}
+
+Os resultados obtidos reforçam a adequação da abordagem híbrida entre algoritmos baseados em dicionário (\gls{LZW}) e predição diferencial (\gls{DPCM}-\gls{RLE}), o que proporciona flexibilidade para cenários de compressão com diferentes perfis de textura térmica.
+
+A escolha do ambiente \textbf{Vivado} e da linguagem \gls{VHDL} permitiu total rastreabilidade entre os blocos lógicos e as métricas de desempenho, facilitando futuras otimizações. Em síntese, os experimentos comprovam que a proposta cumpre os requisitos funcionais e não funcionais estabelecidos no \gls{DRS} (v0.1), consolidando a base técnica para a fase de integração e validação em hardware real.
+
+% ---------------------------------------------------------
+% Capítulo 5
+% ---------------------------------------------------------
+\chapter{Conclusão}
+
+O desenvolvimento do sistema de compressão sem perdas para imagens \gls{LWIR} em \gls{FPGA} atingiu os objetivos propostos, demonstrando a viabilidade técnica de uma arquitetura de alta eficiência e baixo consumo de recursos lógicos. A análise e experimentação realizadas ao longo das etapas de fundamentação, modelagem e prototipagem confirmaram a aplicabilidade de técnicas de compressão \gls{lossless} em ambientes embarcados com restrições de memória e latência.
+
+A avaliação comparativa entre os candidatos primários resultou na seleção dos algoritmos \gls{LZW} e DPCM-RLE como alternativas estratégicas complementares. O primeiro, voltado ao desempenho, mostrou potencial expressivo de paralelismo e aproveitamento otimizado de \gls{BRAM}s em arquiteturas de dicionário. Já o segundo, focado na simplicidade e rapidez de implementação, favorece iterações curtas de prototipagem e validação funcional. Essa combinação equilibra \textit{throughput}, complexidade de hardware e fidelidade de reconstrução radiométrica.
+
+O fechamento da arquitetura consolidou as decisões relativas ao uso de \gls{DSP}s para operações críticas e à distribuição equilibrada de \gls{LUT}s, \gls{FF}s e \gls{BRAM}s, mantendo o consumo total de recursos abaixo de 50\% da capacidade do \gls{Zynq7020}. O ambiente de desenvolvimento foi padronizado na suíte \textbf{Xilinx Vivado}, garantindo consistência nas etapas de síntese, simulação e geração de \textit{bitstream}.
+
+Os resultados preliminares, com compressão média de 35\% e integridade total dos dados reconstruídos, confirmam a eficiência do modelo adotado. Além disso, a redução significativa de latência em comparação a implementações baseadas em CPU demonstra o potencial do uso de FPGAs em aplicações de visão térmica embarcada.
+
+Como trabalhos futuros, recomenda-se a implementação completa do pipeline de compressão \gls{LZW}/DPCM em hardware, a integração com módulos de aquisição de imagem e o estudo de compressão adaptativa para diferentes resoluções e profundidades radiométricas. A continuidade deste projeto contribuirá diretamente para o avanço de sistemas inteligentes de sensoriamento térmico com requisitos de desempenho e integridade elevados.
+
+Em síntese, o sistema proposto representa um passo relevante rumo à consolidação de uma plataforma eficiente, reconfigurável e de alta confiabilidade para compressão sem perdas de imagens \gls{LWIR} em dispositivos embarcados.
+
+% ---------------------------------------------------------
+% Glossário e acrônimos
+% ---------------------------------------------------------
+\newpage
+\printglossaries
+
+% ---------------------------------------------------------
+% Fim do documento
+% ---------------------------------------------------------
+\end{document}

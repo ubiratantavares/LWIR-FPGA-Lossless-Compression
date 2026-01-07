@@ -1,0 +1,185 @@
+\documentclass[12pt,a4paper]{report}
+
+% ========================
+% PACOTES BÁSICOS
+% ========================
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[main=portuguese,english]{babel}
+\usepackage{graphicx}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{amsmath,amsfonts}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage[acronym]{glossaries}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\onehalfspacing
+\hypersetup{colorlinks=true, linkcolor=black, citecolor=black, urlcolor=black}
+
+\titleformat{\chapter}{\normalfont\huge\bfseries}{\thechapter.}{1em}{}
+
+\makeglossaries
+\renewcommand*{\glossaryname}{Glossário}
+\renewcommand*{\acronymname}{Lista de Siglas}
+
+\input{glossario}
+
+% ========================
+% INÍCIO DO DOCUMENTO
+% ========================
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    {\Huge \textbf{Invent Vision}}\\[3cm]
+    {\Huge \textbf{Documento de Especificação \\de Requisitos}}\\[0.5cm]
+    {\large \textbf{Compressão Sem Perdas de Imagens Térmicas \\LWIR em FPGA}}\\[3cm]
+    {\large Versão 1.0}\\[1cm]
+    {\large Autor: Ubiratan da Silva Tavares}\\[0.2cm]
+    {\large Data: \today}\\[5cm]
+    \vfill
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ========================
+% CAPÍTULO 1 – INTRODUÇÃO
+% ========================
+\chapter{Introdução}
+
+\section{Objetivo}
+Este documento descreve os requisitos funcionais e não funcionais do sistema de compressão sem perdas de imagens térmicas LWIR implementado em FPGA, com o propósito de garantir rastreabilidade, desempenho e conformidade técnica.
+
+\section{Escopo}
+O sistema abrange a compressão e descompressão de dados de imagem LWIR de 16 bits, em tempo real, empregando algoritmos de compressão sem perdas otimizados para hardware reconfigurável.
+
+\section{Convenções, Termos e Abreviações}
+Os requisitos são identificados no formato \texttt{[RFxxx]} e \texttt{[RNFxxx]}, onde RF indica requisito funcional e RNF requisito não funcional.
+
+\section{Prioridades dos Requisitos}
+\begin{itemize}
+\item \textbf{Essencial:} requisito indispensável ao funcionamento.
+\item \textbf{Importante:} necessário, mas não crítico.
+\item \textbf{Desejável:} opcional ou futuro.
+\end{itemize}
+
+\section{Referências}
+Liste documentos de apoio, artigos e manuais do FPGA alvo.
+
+% ========================
+% CAPÍTULO 2 – DESCRIÇÃO GERAL DO SISTEMA
+% ========================
+\chapter{Descrição Geral do Sistema}
+
+\section{Visão Geral}
+O sistema realiza compressão sem perdas em fluxo contínuo (\textit{streaming}) de imagens LWIR de 16 bits, com arquitetura paralela e baixa latência.
+
+\section{Usuários e Ambiente de Operação}
+\begin{itemize}
+\item \textbf{Engenheiros de Hardware:} responsáveis pela síntese e integração no FPGA.
+\item \textbf{Pesquisadores em Visão Computacional:} validam os resultados da compressão.
+\end{itemize}
+
+\section{Dependências e Interfaces}
+O sistema integra-se a módulos de captura de imagem via barramento AXI4-Stream e exporta dados comprimidos para memória ou transmissor externo.
+
+% ========================
+% CAPÍTULO 3 – REQUISITOS FUNCIONAIS
+% ========================
+\chapter{Requisitos Funcionais}
+
+\section{Requisitos}
+
+\subsection{[RF001] Compressão Sem Perdas LWIR}
+O sistema deve realizar compressão sem perdas de imagens LWIR de 16 bits em tempo real.
+
+\subsection{[RF002] Interface de Entrada e Saída}
+Deve aceitar dados de imagem via interface AXI4-Stream e gerar saída comprimida compatível com o pipeline de processamento.
+
+\subsection{[RF003] Algoritmo LZW em Hardware}
+O sistema deve implementar o algoritmo LZW em arquitetura paralela com suporte a dicionário dinâmico.
+
+\subsection{[RF004] Configuração e Modos de Operação}
+Deve permitir configuração entre modos de compressão DPCM-RLE (baseline) e LZW otimizado.
+
+\subsection{[RF005] Monitoramento de Desempenho}
+O sistema deve calcular e disponibilizar métricas de taxa de compressão (CR) e throughput.
+
+% ========================
+% CAPÍTULO 4 – REQUISITOS NÃO FUNCIONAIS
+% ========================
+\chapter{Requisitos Não Funcionais}
+
+\section{Desempenho}
+\begin{itemize}
+\item [RNF001] O sistema deve atingir uma Taxa de Compressão mínima (CR) definida após caracterização dos dados.
+\item [RNF002] A latência total de processamento deve ser inferior a 1 ms por frame.
+\end{itemize}
+
+\section{Arquitetura e Design de Hardware}
+\begin{itemize}
+\item [RNF003] O algoritmo LZW deve empregar BRAMs de porta dupla para leitura e escrita simultânea.
+\item [RNF004] A arquitetura deve ser totalmente pipeline (\textit{fully pipelined}) para alta taxa de transferência.
+\end{itemize}
+
+\section{Recursos de Hardware}
+\begin{itemize}
+\item [RNF005] O design deve otimizar o uso de LUTs, FFs, BRAMs e DSPs conforme a FPGA alvo.
+\end{itemize}
+
+\section{Confiabilidade e Segurança}
+\begin{itemize}
+\item [RNF006] A compressão deve ser determinística e reprodutível.
+\item [RNF007] O sistema deve prevenir corrupção de dados e estouros de buffer.
+\end{itemize}
+
+\section{Usabilidade e Portabilidade}
+\begin{itemize}
+\item [RNF008] O design deve ser portável entre famílias de FPGA.
+\item [RNF009] Deve integrar-se facilmente a sistemas embarcados de captura e processamento.
+\end{itemize}
+
+% ========================
+% CAPÍTULO 5 – AMBIENTE DE DESENVOLVIMENTO
+% ========================
+\chapter{Requisitos de Ambiente e Restrições Finais}
+
+\section{Requisitos de Desempenho Fechados}
+
+\subsection*{[RNF010] Taxa de Compressão Mínima (CR Fechado)}
+O acelerador de compressão deve alcançar uma Taxa de Compressão (CR) na faixa de \textbf{1.5:1 a 2.5:1} \textit{lossless} sobre os dados \gls{TIR} de 16 bits.
+
+\subsection*{[RNF011] Latência de Processamento (Requisito Fechado)}
+A latência total de processamento deve ser inferior a \textbf{1 ms} por \textit{frame} de imagem.
+
+\section{Ambiente de Desenvolvimento (Toolchain)}
+
+\subsection*{[RNF012] Ferramenta de Síntese/Implementação}
+O código \gls{RTL} deve ser sintetizável na suíte \textbf{Xilinx Vivado} (e.g., Vivado 2023.2).
+
+\subsection*{[RNF013] Verificação de Hardware}
+O design deve ser compatível com ferramentas de análise de \textit{timing} e depuração \textit{on-chip} (como \gls{ILA} ou \gls{ChipScope}) para a validação da Corretude.
+
+\section{Pontos Abertos Finais (A.4)}
+\label{aberto:fechamento}
+
+O DRS v0.1 está finalizado, mas exige a resolução formal dos seguintes pontos na fase de implementação:
+\begin{itemize}
+    \item \textbf{Orçamento de Recursos (FPGA Alvo):} Definir e fixar o \textbf{limite máximo de utilização} de \gls{LUT}s, \gls{FF}s, \gls{BRAM}s e \gls{DSP}s no \gls{FPGA} alvo (e.g., Xilinx \gls{Zynq7020}) para o subsistema de compressão (RFN-5).
+    \item \textbf{Datasets de Validação:} Finalizar a aquisição e caracterização dos \textbf{Datasets de Imagens \gls{TIR} de 16 bits} para realizar os testes de CR e Corretude (RFN-6.1 e RFN-6.2).
+\end{itemize}
+
+
+% ========================
+% CAPÍTULO 6 – GLOSSÁRIO
+% ========================
+\printglossaries
+
+\end{document}
